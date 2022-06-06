@@ -35,14 +35,14 @@ use util::uint::Uint256;
 
 /// The maximum allowable sequence number
 pub const MAX_SEQUENCE: u32 = 0xFFFFFFFF;
-/// How many satoshis are in "one bitcoin"
+/// How many duffs are in "one dash"
 pub const COIN_VALUE: u64 = 100_000_000;
 /// How many seconds between blocks we expect on average
-pub const TARGET_BLOCK_SPACING: u32 = 600;
+pub const TARGET_BLOCK_SPACING: u32 = 150;
 /// How many blocks between diffchanges
-pub const DIFFCHANGE_INTERVAL: u32 = 2016;
+pub const DIFFCHANGE_INTERVAL: u32 = 1;
 /// How much time on average should occur between diffchanges
-pub const DIFFCHANGE_TIMESPAN: u32 = 14 * 24 * 3600;
+pub const DIFFCHANGE_TIMESPAN: u32 = 2 * 60 + 30;
 /// The maximum allowed weight for a block, see BIP 141 (network rule)
 pub const MAX_BLOCK_WEIGHT: u32 = 4_000_000;
 /// The minimum transaction weight for a valid serialized transaction
@@ -51,20 +51,22 @@ pub const MIN_TRANSACTION_WEIGHT: u32 = 4 * 60;
 pub const WITNESS_SCALE_FACTOR: usize = 4;
 /// The maximum allowed number of signature check operations in a block
 pub const MAX_BLOCK_SIGOPS_COST: i64 = 80_000;
-/// Mainnet (bitcoin) pubkey address prefix.
-pub const PUBKEY_ADDRESS_PREFIX_MAIN: u8 = 0; // 0x00
-/// Mainnet (bitcoin) script address prefix.
-pub const SCRIPT_ADDRESS_PREFIX_MAIN: u8 = 5; // 0x05
-/// Test (tesnet, signet, regtest) pubkey address prefix.
-pub const PUBKEY_ADDRESS_PREFIX_TEST: u8 = 111; // 0x6f
-/// Test (tesnet, signet, regtest) script address prefix.
-pub const SCRIPT_ADDRESS_PREFIX_TEST: u8 = 196; // 0xc4
+/// Mainnet (dash) pubkey address prefix.
+pub const PUBKEY_ADDRESS_PREFIX_MAIN: u8 = 76; // 0x4c
+/// Mainnet (dash) script address prefix.
+pub const SCRIPT_ADDRESS_PREFIX_MAIN: u8 = 16; // 0x10
+/// Test (testnet, signet, regtest) pubkey address prefix.
+pub const PUBKEY_ADDRESS_PREFIX_TEST: u8 = 140; // 0x8c
+/// Test (testnet, signet, regtest) script address prefix.
+pub const SCRIPT_ADDRESS_PREFIX_TEST: u8 = 19; // 0x13
 /// The maximum allowed script size.
 pub const MAX_SCRIPT_ELEMENT_SIZE: usize = 520;
 /// How may blocks between halvings.
 pub const SUBSIDY_HALVING_INTERVAL: u32 = 210_000;
+/// How many blocks between block reduction (365d in avg)
+pub const SUBSIDY_REDUCTION_INTERVAL: u32 = 210_000;
 
-/// In Bitcoind this is insanely described as ~((u256)0 >> 32)
+/// In Dashd this is insanely described as ~((u256)0 >> 32)
 pub fn max_target(_: Network) -> Uint256 {
     Uint256::from_u64(0xFFFF).unwrap() << 208
 }
@@ -73,10 +75,10 @@ pub fn max_target(_: Network) -> Uint256 {
 /// since keeping everything below this value should prevent overflows
 /// if you are doing anything remotely sane with monetary values).
 pub fn max_money(_: Network) -> u64 {
-    21_000_000 * COIN_VALUE
+    18920902 * COIN_VALUE
 }
 
-/// Constructs and returns the coinbase (and only) transaction of the Bitcoin genesis block
+/// Constructs and returns the coinbase (and only) transaction of the Dash genesis block
 fn bitcoin_genesis_tx() -> Transaction {
     // Base
     let mut ret = Transaction {
@@ -107,7 +109,7 @@ fn bitcoin_genesis_tx() -> Transaction {
         .push_opcode(opcodes::all::OP_CHECKSIG)
         .into_script();
     ret.output.push(TxOut {
-        value: 50 * COIN_VALUE,
+        value: 500 * COIN_VALUE,
         script_pubkey: out_script
     });
 
@@ -121,19 +123,20 @@ pub fn genesis_block(network: Network) -> Block {
     let hash: sha256d::Hash = txdata[0].txid().into();
     let merkle_root = hash.into();
     match network {
-        Network::Bitcoin => {
+        Network::Dash => {
             Block {
                 header: BlockHeader {
-                    version: 1,
+                    version: 2,
                     prev_blockhash: Default::default(),
                     merkle_root,
-                    time: 1231006505,
-                    bits: 0x1d00ffff,
-                    nonce: 2083236893
+                    time: 1390103681,
+                    bits: 0x1e0ffff0,
+                    nonce: 128987
                 },
                 txdata,
             }
         }
+        // TODO: Update
         Network::Testnet => {
             Block {
                 header: BlockHeader {
@@ -160,6 +163,7 @@ pub fn genesis_block(network: Network) -> Block {
                 txdata,
             }
         }
+        // TODO: Update
         Network::Regtest => {
             Block {
                 header: BlockHeader {
@@ -201,7 +205,7 @@ mod test {
         assert_eq!(gen.output.len(), 1);
         assert_eq!(serialize(&gen.output[0].script_pubkey),
                    Vec::from_hex("434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac").unwrap());
-        assert_eq!(gen.output[0].value, 50 * COIN_VALUE);
+        assert_eq!(gen.output[0].value, 500 * COIN_VALUE);
         assert_eq!(gen.lock_time, 0);
 
         assert_eq!(format!("{:x}", gen.wtxid()),
@@ -210,9 +214,9 @@ mod test {
 
     #[test]
     fn bitcoin_genesis_full_block() {
-        let gen = genesis_block(Network::Bitcoin);
+        let gen = genesis_block(Network::Dash);
 
-        assert_eq!(gen.header.version, 1);
+        assert_eq!(gen.header.version, 2);
         assert_eq!(gen.header.prev_blockhash, Default::default());
         assert_eq!(format!("{:x}", gen.header.merkle_root),
                    "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b".to_string());

@@ -12,10 +12,10 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! Bitcoin network addresses.
+//! Dash network addresses.
 //!
 //! This module defines the structures and functions needed to encode
-//! network addresses in Bitcoin messages.
+//! network addresses in Dash messages.
 //!
 
 use prelude::*;
@@ -27,7 +27,7 @@ use io;
 use network::constants::ServiceFlags;
 use consensus::encode::{self, Decodable, Encodable, VarInt, ReadExt, WriteExt};
 
-/// A message which can be sent on the Bitcoin network
+/// A message which can be sent on the Dash network
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Address {
     /// Services provided by the peer whose address this is

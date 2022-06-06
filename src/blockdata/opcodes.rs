@@ -12,9 +12,9 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! Bitcoin script opcodes.
+//! Dash script opcodes.
 //!
-//! Bitcoin's script uses a stack-based assembly language. This module defines
+//! Dash's script uses a stack-based assembly language. This module defines
 //! all of the opcodes for that language.
 //!
 
