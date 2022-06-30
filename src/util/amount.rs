@@ -22,21 +22,21 @@ use core::fmt::{self, Write};
 /// A set of denominations in which amounts can be expressed.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Denomination {
-    /// BTC
+    /// DASH
     Bitcoin,
-    /// mBTC
+    /// mDASH
     MilliBitcoin,
-    /// uBTC
+    /// uDASH
     MicroBitcoin,
-    /// nBTC
+    /// nDASH
     NanoBitcoin,
-    /// pBTC
+    /// pDASH
     PicoBitcoin,
     /// bits
     Bit,
-    /// satoshi
+    /// duff
     Satoshi,
-    /// msat
+    /// mduff
     MilliSatoshi,
 }
 
@@ -59,14 +59,14 @@ impl Denomination {
 impl fmt::Display for Denomination {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match *self {
-            Denomination::Bitcoin => "BTC",
-            Denomination::MilliBitcoin => "mBTC",
-            Denomination::MicroBitcoin => "uBTC",
-            Denomination::NanoBitcoin => "nBTC",
-            Denomination::PicoBitcoin => "pBTC",
+            Denomination::Bitcoin => "DASH",
+            Denomination::MilliBitcoin => "mDASH",
+            Denomination::MicroBitcoin => "uDASH",
+            Denomination::NanoBitcoin => "nDASH",
+            Denomination::PicoBitcoin => "pDASH",
             Denomination::Bit => "bits",
-            Denomination::Satoshi => "satoshi",
-            Denomination::MilliSatoshi => "msat",
+            Denomination::Satoshi => "duff",
+            Denomination::MilliSatoshi => "mduff",
         })
     }
 }
@@ -100,23 +100,23 @@ impl FromStr for Denomination {
 }
 
 fn denomination_from_str(mut s: &str) -> Option<Denomination> {
-    if s.eq_ignore_ascii_case("BTC") {
+    if s.eq_ignore_ascii_case("DASH") {
         return Some(Denomination::Bitcoin);
     }
 
-    if s.eq_ignore_ascii_case("mBTC") {
+    if s.eq_ignore_ascii_case("mDASH") {
         return Some(Denomination::MilliBitcoin);
     }
 
-    if s.eq_ignore_ascii_case("uBTC") {
+    if s.eq_ignore_ascii_case("uDASH") {
         return Some(Denomination::MicroBitcoin);
     }
 
-    if s.eq_ignore_ascii_case("nBTC") {
+    if s.eq_ignore_ascii_case("nDASH") {
         return Some(Denomination::NanoBitcoin);
     }
 
-    if s.eq_ignore_ascii_case("pBTC") {
+    if s.eq_ignore_ascii_case("pDASH") {
         return Some(Denomination::PicoBitcoin);
     }
 
@@ -127,14 +127,14 @@ fn denomination_from_str(mut s: &str) -> Option<Denomination> {
     if s.eq_ignore_ascii_case("bit") {
         return Some(Denomination::Bit);
     }
-    if s.eq_ignore_ascii_case("satoshi") {
+    if s.eq_ignore_ascii_case("duff") {
         return Some(Denomination::Satoshi);
     }
     if s.eq_ignore_ascii_case("sat") {
         return Some(Denomination::Satoshi);
     }
 
-    if s.eq_ignore_ascii_case("msat") {
+    if s.eq_ignore_ascii_case("mduff") {
         return Some(Denomination::MilliSatoshi);
     }
 
@@ -343,7 +343,7 @@ impl Amount {
     /// Exactly one bitcoin.
     pub const ONE_BTC: Amount = Amount(100_000_000);
     /// The maximum value allowed as an amount. Useful for sanity checking.
-    pub const MAX_MONEY: Amount = Amount(21_000_000 * 100_000_000);
+    pub const MAX_MONEY: Amount = Amount(19_000_000 * 100_000_000);
 
     /// Create an [Amount] with satoshi precision and the given number of satoshis.
     pub const fn from_sat(satoshi: u64) -> Amount {
@@ -988,11 +988,11 @@ pub mod serde {
     //!
     //! ```rust,ignore
     //! use serde::{Serialize, Deserialize};
-    //! use bitcoin::Amount;
+    //! use dash::Amount;
     //!
     //! #[derive(Serialize, Deserialize)]
     //! pub struct HasAmount {
-    //!     #[serde(with = "bitcoin::util::amount::serde::as_btc")]
+    //!     #[serde(with = "dash::util::amount::serde::as_btc")]
     //!     pub amount: Amount,
     //! }
     //! ```

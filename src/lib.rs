@@ -12,10 +12,10 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! # Rust Bitcoin Library
+//! # Rust Dash Library
 //!
-//! This is a library that supports the Bitcoin network protocol and associated
-//! primitives. It is designed for Rust programs built to work with the Bitcoin
+//! This is a library that supports the Dash network protocol and associated
+//! primitives. It is designed for Rust programs built to work with the Dash
 //! network.
 //!
 //! It is also written entirely in Rust to illustrate the benefits of strong type
@@ -65,7 +65,7 @@ compile_error!("at least one of the `std` or `no-std` features must be enabled")
 
 // Disable 16-bit support at least for now as we can't guarantee it yet.
 #[cfg(target_pointer_width = "16")]
-compile_error!("rust-bitcoin currently only supports architectures with pointers wider
+compile_error!("rust-dash currently only supports architectures with pointers wider
                 than 16 bits, let us know if you want 16-bit support. Note that we do
                 NOT guarantee that we will implement it!");
 
@@ -82,7 +82,7 @@ extern crate serde_big_array;
 extern crate core; // for Rust 1.29 and no-std tests
 
 // Re-exported dependencies.
-#[macro_use] pub extern crate bitcoin_hashes as hashes;
+#[macro_use] pub extern crate dash_hashes as hashes;
 pub extern crate secp256k1;
 pub extern crate bech32;
 
@@ -93,7 +93,7 @@ extern crate hashbrown;
 #[cfg_attr(docsrs, doc(cfg(feature = "base64")))]
 pub extern crate base64;
 
-#[cfg(feature="bitcoinconsensus")] extern crate bitcoinconsensus;
+#[cfg(feature="dashconsensus")] extern crate dashconsensus;
 #[cfg(feature = "serde")] #[macro_use] extern crate serde;
 #[cfg(all(test, feature = "serde"))] extern crate serde_json;
 #[cfg(all(test, feature = "serde"))] extern crate serde_test;
@@ -104,7 +104,7 @@ pub extern crate base64;
 pub extern crate anyhow;
 
 #[cfg(target_pointer_width = "16")]
-compile_error!("rust-bitcoin cannot be used on 16-bit architectures");
+compile_error!("rust-dash cannot be used on 16-bit architectures");
 
 #[cfg(test)]
 #[macro_use]

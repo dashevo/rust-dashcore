@@ -414,7 +414,7 @@ impl DerivationPath {
     /// Concatenate `self` with `path` and return the resulting new path.
     ///
     /// ```
-    /// use bitcoin::util::bip32::{DerivationPath, ChildNumber};
+    /// use dash::util::bip32::{DerivationPath, ChildNumber};
     /// use std::str::FromStr;
     ///
     /// let base = DerivationPath::from_str("m/42").unwrap();
@@ -611,7 +611,7 @@ impl ExtendedPrivKey {
         }
 
         let network = if data[0..4] == [0x04u8, 0x88, 0xAD, 0xE4] {
-            Network::Bitcoin
+            Network::Dash
         } else if data[0..4] == [0x04u8, 0x35, 0x83, 0x94] {
             Network::Testnet
         } else {
@@ -634,7 +634,7 @@ impl ExtendedPrivKey {
     pub fn encode(&self) -> [u8; 78] {
         let mut ret = [0; 78];
         ret[0..4].copy_from_slice(&match self.network {
-            Network::Bitcoin => [0x04, 0x88, 0xAD, 0xE4],
+            Network::Dash => [0x04, 0x88, 0xAD, 0xE4],
             Network::Testnet | Network::Signet | Network::Regtest => [0x04, 0x35, 0x83, 0x94],
         }[..]);
         ret[4] = self.depth as u8;
@@ -753,7 +753,7 @@ impl ExtendedPubKey {
 
         Ok(ExtendedPubKey {
             network: if data[0..4] == [0x04u8, 0x88, 0xB2, 0x1E] {
-                Network::Bitcoin
+                Network::Dash
             } else if data[0..4] == [0x04u8, 0x35, 0x87, 0xCF] {
                 Network::Testnet
             } else {
@@ -773,7 +773,7 @@ impl ExtendedPubKey {
     pub fn encode(&self) -> [u8; 78] {
         let mut ret = [0; 78];
         ret[0..4].copy_from_slice(&match self.network {
-            Network::Bitcoin => [0x04u8, 0x88, 0xB2, 0x1E],
+            Network::Dash => [0x04u8, 0x88, 0xB2, 0x1E],
             Network::Testnet | Network::Signet | Network::Regtest => [0x04u8, 0x35, 0x87, 0xCF],
         }[..]);
         ret[4] = self.depth as u8;
@@ -1153,7 +1153,7 @@ mod tests {
         }
 
         let xpriv = ExtendedPrivKey {
-            network: Network::Bitcoin,
+            network: Network::Dash,
             depth: 0,
             parent_fingerprint: Default::default(),
             child_number: ChildNumber::Normal { index: 0 },

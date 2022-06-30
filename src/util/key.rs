@@ -288,7 +288,7 @@ impl PrivateKey {
     pub fn fmt_wif(&self, fmt: &mut dyn fmt::Write) -> fmt::Result {
         let mut ret = [0; 34];
         ret[0] = match self.network {
-            Network::Bitcoin => 128,
+            Network::Dash => 128,
             Network::Testnet | Network::Signet | Network::Regtest => 239,
         };
         ret[1..33].copy_from_slice(&self.inner[..]);
@@ -322,7 +322,7 @@ impl PrivateKey {
         };
 
         let network = match data[0] {
-            128 => Network::Bitcoin,
+            128 => Network::Dash,
             239 => Network::Testnet,
             x   => {
                 return Err(Error::Base58(base58::Error::InvalidAddressVersion(x)));
@@ -488,7 +488,7 @@ mod tests {
     use std::str::FromStr;
     use hashes::hex::ToHex;
     use network::constants::Network::Testnet;
-    use network::constants::Network::Bitcoin;
+    use network::constants::Network::Dash;
     use util::address::Address;
 
     #[test]

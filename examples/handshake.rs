@@ -1,17 +1,17 @@
-extern crate bitcoin;
+extern crate dash;
 
 use std::net::{IpAddr, Ipv4Addr, Shutdown, SocketAddr, TcpStream};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{env, process};
 use std::io::{Write, BufReader};
 
-use bitcoin::consensus::{encode, Decodable};
-use bitcoin::network::{address, constants, message, message_network};
-use bitcoin::secp256k1;
-use bitcoin::secp256k1::rand::Rng;
+use dash::consensus::{encode, Decodable};
+use dash::network::{address, constants, message, message_network};
+use dash::secp256k1;
+use dash::secp256k1::rand::Rng;
 
 fn main() {
-    // This example establishes a connection to a Bitcoin node, sends the intial
+    // This example establishes a connection to a Dash node, sends the intial
     // "version" message, waits for the reply, and finally closes the connection.
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -29,7 +29,7 @@ fn main() {
     let version_message = build_version_message(address);
 
     let first_message = message::RawNetworkMessage {
-        magic: constants::Network::Bitcoin.magic(),
+        magic: constants::Network::Dash.magic(),
         payload: version_message,
     };
 
@@ -49,7 +49,7 @@ fn main() {
                     println!("Received version message: {:?}", reply.payload);
 
                     let second_message = message::RawNetworkMessage {
-                        magic: constants::Network::Bitcoin.magic(),
+                        magic: constants::Network::Dash.magic(),
                         payload: message::NetworkMessage::Verack,
                     };
 

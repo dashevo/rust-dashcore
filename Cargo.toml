@@ -17,7 +17,7 @@ default = [ "std", "secp-recovery" ]
 base64 = [ "base64-compat" ]
 unstable = []
 rand = ["secp256k1/rand-std"]
-use-serde = ["serde", "bitcoin_hashes/serde", "secp256k1/serde", "serde-big-array"]
+use-serde = ["serde", "dash_hashes/serde", "secp256k1/serde", "serde-big-array"]
 secp-lowmemory = ["secp256k1/lowmemory"]
 secp-recovery = ["secp256k1/recovery"]
 signer = ["secp-recovery", "rand", "dep:hex", "dep:anyhow"]
@@ -27,8 +27,8 @@ signer = ["secp-recovery", "rand", "dep:hex", "dep:anyhow"]
 # The no-std feature doesn't disable std - you need to turn off the std feature for that by disabling default.
 # Instead no-std enables additional features required for this crate to be usable without std.
 # As a result, both can be enabled without conflict.
-std = ["secp256k1/std", "bitcoin_hashes/std", "bech32/std"]
-no-std = ["hashbrown", "core2/alloc", "bitcoin_hashes/alloc", "secp256k1/alloc"]
+std = ["secp256k1/std", "dash_hashes/std", "bech32/std"]
+no-std = ["hashbrown", "core2/alloc", "dash_hashes/alloc", "secp256k1/alloc"]
 
 [package.metadata.docs.rs]
 features = [ "std", "secp-recovery", "base64", "rand", "use-serde", "bitcoinconsensus", "signer"]
@@ -36,7 +36,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 bech32 = { version = "0.8.1", default-features = false }
-bitcoin_hashes = { version = "0.10.0", default-features = false }
+dash_hashes = { version = "0.10.0", default-features = false }
 secp256k1 = { git = "https://github.com/rust-bitcoin/rust-secp256k1", default-features = false, rev="f7cae46fc7733522cb84ef1b1ee1d1ed0cec2fd3" }
 core2 = { version = "0.3.0", optional = true, default-features = false }
 

@@ -164,9 +164,9 @@ impl<R: DerefMut<Target = Transaction>> SigHashCache<R> {
     /// panics if `input_index` is out of bounds with respect of the number of inputs
     ///
     /// ```
-    /// use bitcoin::blockdata::transaction::{Transaction, EcdsaSighashType};
-    /// use bitcoin::util::bip143::SigHashCache;
-    /// use bitcoin::Script;
+    /// use dash::blockdata::transaction::{Transaction, EcdsaSighashType};
+    /// use dash::util::bip143::SigHashCache;
+    /// use dash::Script;
     ///
     /// let mut tx_to_sign = Transaction { version: 2, lock_time: 0, input: Vec::new(), output: Vec::new() };
     /// let input_count = tx_to_sign.input.len();
@@ -201,7 +201,7 @@ mod tests {
 
     fn p2pkh_hex(pk: &str) -> Script {
         let pk: PublicKey = PublicKey::from_str(pk).unwrap();
-        let witness_script = Address::p2pkh(&pk, Network::Bitcoin).script_pubkey();
+        let witness_script = Address::p2pkh(&pk, Network::Dash).script_pubkey();
         witness_script
     }
 

@@ -319,7 +319,7 @@ mod tests {
 
     use blockdata::script::Script;
     use blockdata::transaction::{Transaction, TxIn, TxOut, OutPoint};
-    use network::constants::Network::Bitcoin;
+    use network::constants::Network::Dash;
     use consensus::encode::{deserialize, serialize, serialize_hex};
     use util::bip32::{ChildNumber, ExtendedPrivKey, ExtendedPubKey, Fingerprint, KeySource};
     use util::psbt::map::{Output, Input};

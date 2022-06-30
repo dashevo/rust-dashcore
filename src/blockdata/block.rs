@@ -12,7 +12,7 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! Bitcoin blocks.
+//! Dash blocks.
 //!
 //! A block is a bundle of transactions with a proof-of-work attached,
 //! which commits to an earlier block to form the blockchain. This
@@ -77,7 +77,7 @@ impl BlockHeader {
     /// [`Uint256`]: ../../util/uint/struct.Uint256.html
     ///
     /// ```
-    /// use bitcoin::blockdata::block::BlockHeader;
+    /// use dash::blockdata::block::BlockHeader;
     ///
     /// assert_eq!(0x1d00ffff,
     ///     BlockHeader::compact_target_from_u256(
@@ -412,7 +412,7 @@ mod tests {
         assert_eq!(real_decode.header.nonce, 2067413810);
         assert_eq!(real_decode.header.work(), work);
         assert_eq!(real_decode.header.validate_pow(&real_decode.header.target()).unwrap(), real_decode.block_hash());
-        assert_eq!(real_decode.header.difficulty(Network::Bitcoin), 1);
+        assert_eq!(real_decode.header.difficulty(Network::Dash), 1);
         // [test] TODO: check the transaction data
 
         assert_eq!(real_decode.size(), some_block.len());

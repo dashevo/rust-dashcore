@@ -1,14 +1,14 @@
-extern crate bitcoin;
+extern crate dash;
 
 fn do_test(data: &[u8]) {
-    let psbt: Result<bitcoin::util::psbt::PartiallySignedTransaction, _> = bitcoin::consensus::encode::deserialize(data);
+    let psbt: Result<dash::util::psbt::PartiallySignedTransaction, _> = dash::consensus::encode::deserialize(data);
     match psbt {
         Err(_) => {},
         Ok(psbt) => {
-            let ser = bitcoin::consensus::encode::serialize(&psbt);
-            let deser: bitcoin::util::psbt::PartiallySignedTransaction  = bitcoin::consensus::encode::deserialize(&ser).unwrap();
+            let ser = dash::consensus::encode::serialize(&psbt);
+            let deser: dash::util::psbt::PartiallySignedTransaction  = dash::consensus::encode::deserialize(&ser).unwrap();
             // Since the fuzz data could order psbt fields differently, we compare to our deser/ser instead of data
-            assert_eq!(ser, bitcoin::consensus::encode::serialize(&deser));
+            assert_eq!(ser, dash::consensus::encode::serialize(&deser));
         }
     }
 }
