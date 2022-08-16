@@ -26,6 +26,8 @@
 use prelude::*;
 
 use core::fmt;
+use std::collections::HashMap;
+use std::ops::{Add, Div};
 
 use util;
 use util::Error::{BlockBadTarget, BlockBadProofOfWork};
@@ -38,6 +40,7 @@ use network::constants::Network;
 use blockdata::transaction::Transaction;
 use blockdata::constants::{max_target, WITNESS_SCALE_FACTOR};
 use blockdata::script;
+use util::BitArray;
 use VarInt;
 
 /// A block header, which contains all the block's information except
@@ -128,6 +131,159 @@ impl BlockHeader {
         compact | (size << 24) as u32
     }
 
+    /// This is the number of blocks to use in the dark gravity wave calculation
+    pub const DGW_PAST_BLOCKS : u32 = 24;
+
+    /// Can we calculate the difficulty with given previous blocks?
+    pub fn can_calculate_difficulty_with_previous_blocks(&self, network: Network, previous_blocks: HashMap<BlockHash, BlockHeader>) -> bool {
+        let mut previous_block = match previous_blocks.get(&self.prev_blockhash) {
+            None => { return false; }
+            Some(previous_block) => { previous_block }
+        };
+        //todo add uint256_is_zero(_prevBlock)
+        if self.prev_blockhash.is_empty() {
+            return true;
+        }
+
+        if network.allow_min_difficulty_blocks() {
+        // recent block is more than 2 hours old
+        // if (self.timestamp > (previous_block.timestamp + 2 * 60 * 60)) {
+        //    return TRUE;
+        // }
+        // recent block is more than 10 minutes old
+            if self.time > (previous_block.time + 600) { // 2.5 * 60 * 4
+            return true;
+            }
+        }
+        for _i in 1..Self::DGW_PAST_BLOCKS {
+            previous_block = match previous_blocks.get(&previous_block.prev_blockhash) {
+                None => { return false; }
+                Some(previous_block) => { previous_block }
+            };
+        }
+        return true;
+    }
+
+    /// verifies the difficulty is correct using previous blocks
+    pub fn verify_difficulty_with_previous_blocks(&self, network: Network, previous_blocks: HashMap<BlockHash, BlockHeader>) -> (bool, Option<u32>) {
+        let dark_gravity_wave_target = self.dark_gravity_wave_target_with_previous_blocks(network, previous_blocks);
+        match dark_gravity_wave_target {
+            None => { (false, None) }
+            Some(target) => {
+                let diff = self.bits.abs_diff(target);
+                (diff < 2, Some(target)) //the core client is less precise with a rounding error that can sometimes cause a problem. We are very rarely 1 off
+            }
+        }
+    }
+
+    /// current difficulty formula, darkcoin - based on DarkGravity v3,
+    /// original work done by Evan Duffield, modified for Rust
+    pub fn dark_gravity_wave_target_with_previous_blocks(&self,
+                                                         network: Network,
+                                                         previous_blocks: HashMap<BlockHash, BlockHeader>) -> Option<u32> {
+        let previous_block = match previous_blocks.get(&self.prev_blockhash) {
+            None => { return None; }
+            Some(previous_block) => { previous_block }
+        };
+
+        let mut n_actual_timespan: u32 = 0;
+        let mut last_block_time: u64 = 0;
+        let block_count: u32 = 0;
+        let mut sum_targets: Uint256 = Uint256::zero();
+
+        if self.prev_blockhash.is_empty() {
+            return Some(network.max_proof_of_work_target());
+        }
+
+        if network.allow_min_difficulty_blocks() {
+            // recent block is more than 2 hours old
+            if self.time > (previous_block.time + 7200) {
+            // the block is way ahead of previous block
+                return Some(network.max_proof_of_work_target());
+            }
+            // recent block is more than 10 minutes old
+            if self.time > previous_block.time + 600 {
+                let previous_target = previous_block.target();
+
+                let new_target = previous_target.mul_u32(10);
+                let compact = Self::compact_target_from_u256(&new_target);
+                if compact > network.max_proof_of_work_target() {
+                    return Some(network.max_proof_of_work_target());
+                }
+                return Some(compact);
+            }
+        }
+
+        let mut current_block = previous_block;
+        // loop over the past n blocks, where n == PastBlocksMax
+        for block_count in 1..Self::DGW_PAST_BLOCKS {
+            // Calculate average difficulty based on the blocks we iterate over in this for loop
+            if block_count <= Self::DGW_PAST_BLOCKS {
+                let current_target = current_block.target();
+                sum_targets = if block_count == 1 {
+                    current_target.add(current_target)
+                } else {
+                    sum_targets.add(current_target)
+                }
+            }
+
+            // If this is the second iteration (LastBlockTime was set)
+            if last_block_time > 0 {
+                // Calculate time difference between previous block and current block
+                let current_block_time = current_block.time;
+                let diff = last_block_time - current_block_time as u64;
+                // Increment the actual timespan
+                n_actual_timespan += diff as u32;
+            }
+            // Set last_block_time to the block time for the block in current iteration
+            last_block_time = current_block.time as u64;
+            current_block = match previous_blocks.get(&self.prev_blockhash) {
+                None => { return None; }
+                Some(previous_block) => { previous_block }
+            };
+        }
+
+        let block_count256 = Uint256::from_u64(block_count as u64).expect("getting a uint256 from a u64 should never error");
+        // dark_target is the difficulty
+        //DSLog(@"SumTargets for block %d is %@, block_count is %@", self.height, uint256_hex(sum_targets), uint256_hex(block_count256));
+        let mut dark_target = sum_targets.div(block_count256);
+
+        // n_target_timespan is the time that the CountBlocks should have taken to be generated.
+        let n_target_timespan = (block_count - 1) * 150;
+
+        //DSLog(@"Original dark target for block %d is %@", self.height, uint256_hex(dark_target));
+        //DSLog(@"Max proof of work is %@", uint256_hex(self.chain.maxProofOfWork));
+        // Limit the re-adjustment to 3x or 0.33x
+        // We don't want to increase/decrease diff too much.
+        if n_actual_timespan < n_target_timespan / 3 {
+            n_actual_timespan = n_target_timespan / 3;
+        }
+
+        if n_actual_timespan > n_target_timespan * 3 {
+            n_actual_timespan = n_target_timespan * 3;
+        }
+
+
+
+        dark_target = dark_target.mul_u32(n_actual_timespan);
+        let n_target_timespan256 = Uint256::from_u64(n_target_timespan as u64).expect("getting a uint256 from a u64 should never error");
+
+        //DSLog(@"Middle dark target for block %d is %@", self.height, uint256_hex(dark_target));
+        //DSLog(@"n_target_timespan256 for block %d is %@", self.height, uint256_hex(n_target_timespan256));
+        // Calculate the new difficulty based on actual and target timespan.
+        dark_target = dark_target.div(n_target_timespan256);
+
+        //DSLog(@"Final dark target for block %d is %@", self.height, uint256_hex(dark_target));
+
+        // If calculated difficulty is lower than the minimal diff, set the new difficulty to be the minimal diff.
+        if dark_target > network.max_proof_of_work() {
+            return Some(network.max_proof_of_work_target());
+        }
+
+        // Return the new diff.
+        return Some(Self::compact_target_from_u256(&dark_target));
+    }
+
     /// Computes the popular "difficulty" measure for mining.
     pub fn difficulty(&self, network: Network) -> u64 {
         (max_target(network) / self.target()).low_u64()
@@ -155,6 +311,21 @@ impl BlockHeader {
         ret = ret / ret1;
         ret.increment();
         ret
+    }
+}
+
+/// An error when looking up a BIP34 block height.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DarkGravityWaveError {
+    /// We do not have a block we need in cache.
+    RecentBlockNotPresent,
+}
+
+impl fmt::Display for DarkGravityWaveError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DarkGravityWaveError::RecentBlockNotPresent => write!(f, "a needed block is not in cache"),
+        }
     }
 }
 

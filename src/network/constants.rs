@@ -44,6 +44,7 @@ use core::{fmt, ops, convert::From};
 
 use io;
 use consensus::encode::{self, Encodable, Decodable};
+use util::uint::Uint256;
 
 /// Version of the protocol as appearing in network message headers
 /// This constant is used to signal to other peers which features you support.
@@ -117,6 +118,44 @@ impl Network {
             Network::Testnet => 0xFFCAE2CE,
             Network::Devnet  => 0xCEFFCAE2,
             Network::Regtest => 0xDAB5BFFA,
+        }
+    }
+
+    /// Returns if the network allows min difficulty blocks in dark gravity wave
+    pub fn allow_min_difficulty_blocks(self) -> bool {
+        match self {
+            Network::Dash => false,
+            Network::Testnet => true,
+            Network::Devnet  => true,
+            Network::Regtest => true,
+        }
+    }
+
+    /// Returns the max proof of work for the network or network type
+    pub fn max_proof_of_work_target(self) -> u32 {
+        match self {
+            Network::Dash => 0x1e0fffff,
+            Network::Testnet => 0x1e0fffff,
+            Network::Devnet  => 0x207fffff,
+            Network::Regtest => 0x207fffff,
+        }
+    }
+
+    /// Returns the max proof of work for the network or network type
+    pub fn max_proof_of_work(self) -> Uint256 {
+        match self {
+            Network::Dash => Uint256 {
+                0: [0x00000fffffffffff, u64::MAX, u64::MAX, u64::MAX]
+            },
+            Network::Testnet =>  Uint256 {
+                0: [0x00000fffffffffff, u64::MAX, u64::MAX, u64::MAX]
+            },
+            Network::Devnet  =>  Uint256 {
+                0: [0x7fffffffffffffff, u64::MAX, u64::MAX, u64::MAX]
+            },
+            Network::Regtest =>  Uint256 {
+                0: [0x7fffffffffffffff, u64::MAX, u64::MAX, u64::MAX]
+            },
         }
     }
 }
