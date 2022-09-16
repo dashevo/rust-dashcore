@@ -15,7 +15,7 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! Bitcoin blocks.
+//! Dash blocks.
 //!
 //! A block is a bundle of transactions with a proof-of-work attached,
 //! which commits to an earlier block to form the blockchain. This
@@ -31,7 +31,7 @@ use std::ops::{Add, Div};
 
 use util;
 use util::Error::{BlockBadTarget, BlockBadProofOfWork};
-use util::hash::bitcoin_merkle_root;
+use util::hash::dash_merkle_root;
 use hashes::{Hash, HashEngine};
 use hash_types::{Wtxid, BlockHash, TxMerkleNode, WitnessMerkleNode, WitnessCommitment};
 use util::uint::Uint256;
@@ -251,8 +251,6 @@ impl BlockHeader {
         // n_target_timespan is the time that the CountBlocks should have taken to be generated.
         let n_target_timespan = (block_count - 1) * 150;
 
-        //DSLog(@"Original dark target for block %d is %@", self.height, uint256_hex(dark_target));
-        //DSLog(@"Max proof of work is %@", uint256_hex(self.chain.maxProofOfWork));
         // Limit the re-adjustment to 3x or 0.33x
         // We don't want to increase/decrease diff too much.
         if n_actual_timespan < n_target_timespan / 3 {
@@ -263,13 +261,9 @@ impl BlockHeader {
             n_actual_timespan = n_target_timespan * 3;
         }
 
-
-
         dark_target = dark_target.mul_u32(n_actual_timespan);
         let n_target_timespan256 = Uint256::from_u64(n_target_timespan as u64).expect("getting a uint256 from a u64 should never error");
 
-        //DSLog(@"Middle dark target for block %d is %@", self.height, uint256_hex(dark_target));
-        //DSLog(@"n_target_timespan256 for block %d is %@", self.height, uint256_hex(n_target_timespan256));
         // Calculate the new difficulty based on actual and target timespan.
         dark_target = dark_target.div(n_target_timespan256);
 
@@ -393,7 +387,7 @@ impl Block {
     /// Computes the transaction merkle root.
     pub fn compute_merkle_root(&self) -> Option<TxMerkleNode> {
         let hashes = self.txdata.iter().map(|obj| obj.txid().as_hash());
-        bitcoin_merkle_root(hashes).map(|h| h.into())
+        dash_merkle_root(hashes).map(|h| h.into())
     }
 
     /// Calculate the transaction merkle root.
@@ -420,7 +414,7 @@ impl Block {
                 t.wtxid().as_hash()
             }
         });
-        bitcoin_merkle_root(hashes).map(|h| h.into())
+        dash_merkle_root(hashes).map(|h| h.into())
     }
 
     /// base_size == size of header + size of encoded transaction count.
